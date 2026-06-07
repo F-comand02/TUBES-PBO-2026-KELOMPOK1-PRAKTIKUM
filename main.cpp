@@ -274,6 +274,12 @@ public:
     cout << "Jumlah setor : ";
     cin >> jumlah;
 
+    if(jumlah <= 0)
+    {
+        cout << "Jumlah setor harus lebih dari 0!\n";
+        return;
+    }
+
     account->deposit(jumlah);
 
     totalSetor += jumlah;
@@ -293,6 +299,12 @@ public:
 
     cout << "Jumlah tarik : ";
     cin >> jumlah;
+
+    if(jumlah <= 0)
+    {
+        cout << "Jumlah tarik harus lebih dari 0!\n";
+        return;
+    }
 
     account->withdraw(jumlah);
 
