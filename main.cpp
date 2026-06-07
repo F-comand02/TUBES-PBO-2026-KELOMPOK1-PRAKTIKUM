@@ -251,36 +251,53 @@ public:
     }
 
     void cekSaldo()
+{
+    if(account == nullptr)
     {
-        if(account)
-            account->displayInfo();
+        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
+        return;
     }
+
+    account->displayInfo();
+}
 
     void setor()
+{
+    if(account == nullptr)
     {
-        double jumlah;
-
-        cout << "Jumlah setor : ";
-        cin >> jumlah;
-
-        account->deposit(jumlah);
-
-        totalSetor += jumlah;
-
-        cout << "Berhasil setor!\n";
+        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
+        return;
     }
+
+    double jumlah;
+
+    cout << "Jumlah setor : ";
+    cin >> jumlah;
+
+    account->deposit(jumlah);
+
+    totalSetor += jumlah;
+
+    cout << "Berhasil setor!\n";
+}
 
     void tarik()
+{
+    if(account == nullptr)
     {
-        double jumlah;
-
-        cout << "Jumlah tarik : ";
-        cin >> jumlah;
-
-        account->withdraw(jumlah);
-
-        totalTarik += jumlah;
+        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
+        return;
     }
+
+    double jumlah;
+
+    cout << "Jumlah tarik : ";
+    cin >> jumlah;
+
+    account->withdraw(jumlah);
+
+    totalTarik += jumlah;
+}
 
     void cekData()
     {
