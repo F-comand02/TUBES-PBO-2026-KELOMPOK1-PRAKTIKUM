@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <iomanip>
+#include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -11,6 +13,18 @@ void showData(T data)
     cout << data << endl;
 }
 
+// ============================================================
+//  STRUCT untuk riwayat transaksi
+// ============================================================
+struct Transaksi
+{
+    string jenis;
+    double jumlah;
+};
+
+// ============================================================
+//  CLASS Person (abstrak)
+// ============================================================
 class Person
 {
 protected:
@@ -22,7 +36,7 @@ public:
     Person(string nama, string nim)
     {
         this->nama = nama;
-        this->nim = nim;
+        this->nim   = nim;
     }
 
     virtual void displayInfo() = 0;
@@ -33,31 +47,24 @@ public:
     }
 };
 
+// ============================================================
+//  CLASS Customer
+// ============================================================
 class Customer : public Person
 {
 public:
 
     Customer(string nama, string nim)
-        : Person(nama,nim)
-    {
-
-    }
+        : Person(nama, nim) {}
 
     void displayInfo() override
     {
-        cout << "Nama : " << nama << endl;
-        cout << "NIM  : " << nim << endl;
+        cout << "  Nama  : " << nama << endl;
+        cout << "  NIM   : " << nim  << endl;
     }
 
-    string getNama()
-    {
-        return nama;
-    }
-
-    string getNIM()
-    {
-        return nim;
-    }
+    string getNama() { return nama; }
+    string getNIM()  { return nim;  }
 
     ~Customer()
     {
@@ -65,6 +72,9 @@ public:
     }
 };
 
+// ============================================================
+//  CLASS Account (abstrak)
+// ============================================================
 class Account
 {
 protected:
@@ -95,7 +105,7 @@ public:
         }
         else
         {
-            cout << "Saldo tidak cukup!\n";
+            cout << "  [!] Saldo tidak cukup!\n";
         }
     }
 
@@ -106,15 +116,12 @@ public:
 
     virtual void displayInfo()
     {
-        cout << "Saldo : Rp "
+        cout << "  Saldo : Rp "
              << fixed << setprecision(0)
              << saldo << endl;
     }
 
-    double getSaldo()
-    {
-        return saldo;
-    }
+    double getSaldo() { return saldo; }
 
     virtual ~Account()
     {
@@ -122,41 +129,48 @@ public:
     }
 };
 
+// ============================================================
+//  CLASS SavingsAccount
+// ============================================================
 class SavingsAccount : public Account
 {
 public:
 
     SavingsAccount(double saldo)
-        : Account(saldo)
-    {
-
-    }
+        : Account(saldo) {}
 
     void displayInfo() override
     {
-        cout << "\n===== TABUNGAN REGULER =====\n";
-        cout << "Saldo : Rp " << saldo << endl;
+        cout << "\n  ===== TABUNGAN REGULER =====\n";
+        cout << "  Saldo : Rp "
+             << fixed << setprecision(0)
+             << saldo << "\n";
     }
 };
 
+// ============================================================
+//  CLASS PremiumAccount
+// ============================================================
 class PremiumAccount : public Account
 {
 public:
 
     PremiumAccount(double saldo)
-        : Account(saldo)
-    {
-
-    }
+        : Account(saldo) {}
 
     void displayInfo() override
     {
-        cout << "\n===== TABUNGAN PREMIUM =====\n";
-        cout << "Saldo : Rp " << saldo << endl;
-        cout << "Benefit : Cashback 5%\n";
+        cout << "\n  ===== TABUNGAN PREMIUM =====\n";
+        cout << "  Saldo   : Rp "
+             << fixed << setprecision(0)
+             << saldo << "\n";
+        cout << "  Benefit : Cashback 5%\n";
     }
 };
 
+// ============================================================
+//  CLASS FileManager
+// ============================================================
 class FileManager
 {
 public:
@@ -165,173 +179,257 @@ public:
     {
         ofstream file("laporanAcc.txt");
 
-        file << "Nama : "
-             << cust->getNama()
-             << endl;
-
-        file << "NIM : "
-             << cust->getNIM()
-             << endl;
-
-        file << "Saldo terakhir : Rp "
-             << acc->getSaldo()
-             << endl;
+        file << "Nama          : " << cust->getNama() << endl;
+        file << "NIM           : " << cust->getNIM()  << endl;
+        file << "Saldo terakhir: Rp "
+             << fixed << setprecision(0)
+             << acc->getSaldo() << endl;
 
         file.close();
     }
 
     static void saveTransaction(
         double setor,
-        double tarik)
+        double tarik,
+        const vector<Transaksi>& riwayat)
     {
         ofstream file("laporanTeller.txt");
 
         file << "Penyetoran : Rp "
-             << setor
-             << endl;
+             << fixed << setprecision(0)
+             << setor << endl;
 
-        file << "Penarikan : Rp "
-             << tarik
-             << endl;
+        file << "Penarikan  : Rp "
+             << fixed << setprecision(0)
+             << tarik << endl;
+
+        file << "\n--- Riwayat Transaksi ---\n";
+        for(const auto& t : riwayat)
+        {
+            file << t.jenis << " Rp "
+                 << fixed << setprecision(0)
+                 << t.jumlah << endl;
+        }
 
         file.close();
     }
 };
 
+// ============================================================
+//  CLASS Bank
+// ============================================================
 class Bank
 {
 private:
 
     Customer* customer;
-    Account* account;
+    Account*  account;
 
     double totalSetor = 0;
     double totalTarik = 0;
+
+    vector<Transaksi> riwayat;
+
+    // Helper: pastikan user sudah terdaftar
+    bool cekAktif()
+    {
+        if(account == nullptr || customer == nullptr)
+        {
+            cout << "\n  [ERROR] Silakan input data user terlebih dahulu!\n";
+            return false;
+        }
+        return true;
+    }
 
 public:
 
     Bank()
     {
         customer = nullptr;
-        account = nullptr;
+        account  = nullptr;
     }
 
     void inputUser()
     {
-        string nama,nim;
+        // Bersihkan sesi lama
+        if(customer) { delete customer; customer = nullptr; }
+        if(account)  { delete account;  account  = nullptr; }
+        riwayat.clear();
+        totalSetor = 0;
+        totalTarik = 0;
 
-        cout << "\nNama : ";
+        string nama, nim;
+
+        cout << "\n  Nama : ";
         cin.ignore();
-        getline(cin,nama);
+        getline(cin, nama);
 
-        cout << "NIM : ";
-        getline(cin,nim);
+        cout << "  NIM  : ";
+        getline(cin, nim);
 
-        customer = new Customer(
-            nama,
-            nim
-        );
+        customer = new Customer(nama, nim);
 
         int pilihan;
 
-        cout << "\nJenis Rekening\n";
-        cout << "1. Reguler\n";
-        cout << "2. Premium\n";
-        cout << "Pilih : ";
+        cout << "\n  Jenis Rekening\n";
+        cout << "  1. Reguler\n";
+        cout << "  2. Premium\n";
+        cout << "  Pilih : ";
         cin >> pilihan;
 
         if(pilihan == 1)
-        {
             account = new SavingsAccount(0);
-        }
         else
-        {
             account = new PremiumAccount(0);
-        }
+
+        cout << "\n  [OK] Akun berhasil dibuat!\n";
     }
 
     void cekSaldo()
-{
-    if(account == nullptr)
     {
-        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
-        return;
+        if(!cekAktif()) return;
+        account->displayInfo();
     }
-
-    account->displayInfo();
-}
 
     void setor()
-{
-    if(account == nullptr)
     {
-        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
-        return;
+        if(!cekAktif()) return;
+
+        double jumlah;
+
+        cout << "\n  Jumlah setor : Rp ";
+        cin >> jumlah;
+
+        if(jumlah <= 0)
+        {
+            cout << "  [!] Jumlah setor harus lebih dari 0!\n";
+            return;
+        }
+
+        account->deposit(jumlah);
+        totalSetor += jumlah;
+        riwayat.push_back({"Setor", jumlah});
+
+        cout << "  [OK] Berhasil setor Rp "
+             << fixed << setprecision(0)
+             << jumlah << "!\n";
     }
-
-    double jumlah;
-
-    cout << "Jumlah setor : ";
-    cin >> jumlah;
-
-    if(jumlah <= 0)
-    {
-        cout << "Jumlah setor harus lebih dari 0!\n";
-        return;
-    }
-
-    account->deposit(jumlah);
-
-    totalSetor += jumlah;
-
-    cout << "Berhasil setor!\n";
-}
 
     void tarik()
-{
-    if(account == nullptr)
     {
-        cout << "\n[ERROR] Silakan input data user terlebih dahulu!\n";
-        return;
+        if(!cekAktif()) return;
+
+        double jumlah;
+
+        cout << "\n  Jumlah tarik : Rp ";
+        cin >> jumlah;
+
+        if(jumlah <= 0)
+        {
+            cout << "  [!] Jumlah tarik harus lebih dari 0!\n";
+            return;
+        }
+
+        if(jumlah > account->getSaldo())
+        {
+            cout << "  [!] Saldo tidak cukup!\n";
+            return;
+        }
+
+        account->withdraw(jumlah);
+        totalTarik += jumlah;
+        riwayat.push_back({"Tarik", jumlah});
+
+        cout << "  [OK] Berhasil tarik Rp "
+             << fixed << setprecision(0)
+             << jumlah << "!\n";
     }
 
-    double jumlah;
-
-    cout << "Jumlah tarik : ";
-    cin >> jumlah;
-
-    if(jumlah <= 0)
+    // Fitur baru: Transfer (simulasi transfer ke nomor rekening lain)
+    void transfer()
     {
-        cout << "Jumlah tarik harus lebih dari 0!\n";
-        return;
+        if(!cekAktif()) return;
+
+        string noRek;
+        double jumlah;
+
+        cout << "\n  No. Rekening Tujuan : ";
+        cin.ignore();
+        getline(cin, noRek);
+
+        cout << "  Jumlah transfer    : Rp ";
+        cin >> jumlah;
+
+        if(jumlah <= 0)
+        {
+            cout << "  [!] Jumlah transfer harus lebih dari 0!\n";
+            return;
+        }
+
+        if(jumlah > account->getSaldo())
+        {
+            cout << "  [!] Saldo tidak cukup!\n";
+            return;
+        }
+
+        account->withdraw(jumlah);
+        totalTarik += jumlah;
+        riwayat.push_back({"Transfer ke " + noRek, jumlah});
+
+        cout << "  [OK] Transfer Rp "
+             << fixed << setprecision(0)
+             << jumlah << " ke " << noRek << " berhasil!\n";
     }
 
-    account->withdraw(jumlah);
+    // Fitur baru: Riwayat transaksi
+    void riwayatTransaksi()
+    {
+        if(!cekAktif()) return;
 
-    totalTarik += jumlah;
-}
+        cout << "\n  ===== RIWAYAT TRANSAKSI =====\n";
+
+        if(riwayat.empty())
+        {
+            cout << "  Belum ada transaksi.\n";
+            return;
+        }
+
+        for(size_t i = 0; i < riwayat.size(); i++)
+        {
+            cout << "  " << (i + 1) << ". "
+                 << riwayat[i].jenis << " : Rp "
+                 << fixed << setprecision(0)
+                 << riwayat[i].jumlah << "\n";
+        }
+
+        cout << "  -----------------------------\n";
+        cout << "  Total Setor : Rp "
+             << fixed << setprecision(0)
+             << totalSetor << "\n";
+        cout << "  Total Tarik : Rp "
+             << fixed << setprecision(0)
+             << totalTarik << "\n";
+    }
 
     void cekData()
     {
-        if(customer)
-        {
-            customer->displayInfo();
-        }
+        if(!cekAktif()) return;
+
+        cout << "\n  ===== DATA NASABAH =====\n";
+        customer->displayInfo();
+        account->displayInfo();
     }
 
     void laporan()
     {
-        FileManager::saveCustomer(
-            customer,
-            account
-        );
+        if(!cekAktif()) return;
 
-        FileManager::saveTransaction(
-            totalSetor,
-            totalTarik
-        );
+        FileManager::saveCustomer(customer, account);
+        FileManager::saveTransaction(totalSetor, totalTarik, riwayat);
 
-        cout << "\nLaporan berhasil dibuat!\n";
+        cout << "\n  [OK] Laporan berhasil disimpan ke file!\n";
+        cout << "       - laporanAcc.txt\n";
+        cout << "       - laporanTeller.txt\n";
     }
 
     ~Bank()
@@ -341,28 +439,33 @@ public:
     }
 };
 
+// ============================================================
+//  MAIN
+// ============================================================
 int main()
 {
     Bank bank;
-
-    int pilih;
+    int  pilih;
 
     do
     {
         cout << "\n";
-        cout << "====================================\n";
-        cout << "      BANK USU DIGITAL SYSTEM\n";
-        cout << "====================================\n";
+        cout << "  +=====================================+\n";
+        cout << "  |      BANK USU DIGITAL SYSTEM        |\n";
+        cout << "  |      Sistem Perbankan Digital       |\n";
+        cout << "  +=====================================+\n";
+        cout << "  | 1. Input / Ganti Data Nasabah       |\n";
+        cout << "  | 2. Cek Saldo                        |\n";
+        cout << "  | 3. Setor Saldo                      |\n";
+        cout << "  | 4. Tarik Saldo                      |\n";
+        cout << "  | 5. Transfer                         |\n";
+        cout << "  | 6. Riwayat Transaksi                |\n";
+        cout << "  | 7. Laporan Keuangan (simpan file)   |\n";
+        cout << "  | 8. Cek Data Nasabah                 |\n";
+        cout << "  | 0. Keluar                           |\n";
+        cout << "  +=====================================+\n";
 
-        cout << "1. Input Data User\n";
-        cout << "2. Cek Saldo\n";
-        cout << "3. Setor Saldo\n";
-        cout << "4. Tarik Saldo\n";
-        cout << "5. Laporan Keuangan\n";
-        cout << "6. Cek Data User\n";
-        cout << "0. Exit\n";
-
-        cout << "\nPilih : ";
+        cout << "\n  Pilih menu : ";
         cin >> pilih;
 
         switch(pilih)
@@ -384,22 +487,30 @@ int main()
             break;
 
         case 5:
-            bank.laporan();
+            bank.transfer();
             break;
 
         case 6:
+            bank.riwayatTransaksi();
+            break;
+
+        case 7:
+            bank.laporan();
+            break;
+
+        case 8:
             bank.cekData();
             break;
 
         case 0:
-            cout << "\nTerima kasih.\n";
+            cout << "\n  Terima kasih telah menggunakan Bank USU!\n\n";
             break;
 
         default:
-            cout << "\nMenu tidak tersedia.\n";
+            cout << "\n  [!] Menu tidak tersedia. Coba lagi.\n";
         }
 
-    }while(pilih != 0);
+    } while(pilih != 0);
 
     return 0;
 }
