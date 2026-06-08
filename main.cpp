@@ -8,7 +8,8 @@
 
 using namespace std;
 
-enum class JenisTransaksi { SETOR, TARIK, TRANSFER };
+enum class JenisTransaksi { Setor, Tarik, TransferDebit };
+
 
 template<typename T>
 void showData(T data)
@@ -19,8 +20,9 @@ void showData(T data)
 
 struct Transaksi
 {
-    string jenis;
+    JenisTransaksi jenis;
     double jumlah;
+    string keterangan;
 };
 
 
@@ -160,6 +162,18 @@ public:
 };
 
 
+static string jenisKeString(JenisTransaksi jenis)
+{
+    switch(jenis)
+    {
+        case JenisTransaksi::Setor: return "Setor";
+        case JenisTransaksi::Tarik: return "Tarik";
+        case JenisTransaksi::TransferDebit: return "Transfer";
+        default: return "Unknown";
+    }
+}
+
+
 class FileManager
 {
 public:
@@ -202,7 +216,7 @@ public:
         file << "\n--- Riwayat Transaksi ---\n";
         for(const auto& t : riwayat)
         {
-            file << t.jenis << " Rp "
+file << jenisKeString(t.jenis) << " Rp "
                  << fixed << setprecision(0)
                  << t.jumlah << endl;
         }
@@ -311,7 +325,7 @@ public:
 
         account->deposit(jumlah);
         totalSetor += jumlah;
-        riwayat.push_back({"Setor", jumlah});
+riwayat.push_back({JenisTransaksi::Setor, jumlah, string{}});
 
         cout << "  [OK] Berhasil setor Rp "
              << fixed << setprecision(0)
@@ -341,7 +355,7 @@ public:
 
         account->withdraw(jumlah);
         totalTarik += jumlah;
-        riwayat.push_back({"Tarik", jumlah});
+riwayat.push_back({JenisTransaksi::Tarik, jumlah, ""});
 
         cout << "  [OK] Berhasil tarik Rp "
              << fixed << setprecision(0)
@@ -384,7 +398,7 @@ public:
 
         account->withdraw(jumlah);
         totalTarik += jumlah;
-        riwayat.push_back({"Transfer ke " + noRek, jumlah});
+riwayat.push_back({JenisTransaksi::TransferDebit, jumlah, "Transfer ke " + noRek});
 
         cout << "  [OK] Transfer Rp "
              << fixed << setprecision(0)
@@ -407,7 +421,7 @@ public:
         for(size_t i = 0; i < riwayat.size(); i++)
         {
             cout << "  " << (i + 1) << ". "
-                 << riwayat[i].jenis << " : Rp "
+<< jenisKeString(riwayat[i].jenis) << " : Rp "
                  << fixed << setprecision(0)
                  << riwayat[i].jumlah << "\n";
         }
@@ -430,9 +444,11 @@ public:
         account->displayInfo();
     }
 
-    void laporan()
+void laporan()
     {
         if(!cekAktif()) return;
+        // TODO: pastikan konsistensi format laporan bila riwayat berubah.
+
 
         bool ok1 = FileManager::saveCustomer(customer, account);
         bool ok2 = FileManager::saveTransaction(totalSetor, totalTarik, riwayat);
