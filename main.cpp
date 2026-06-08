@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <string>
 #include <ctime>
+#include <limits>
 
 using namespace std;
 
@@ -13,18 +14,14 @@ void showData(T data)
     cout << data << endl;
 }
 
-// ============================================================
-//  STRUCT untuk riwayat transaksi
-// ============================================================
+
 struct Transaksi
 {
     string jenis;
     double jumlah;
 };
 
-// ============================================================
-//  CLASS Person (abstrak)
-// ============================================================
+
 class Person
 {
 protected:
@@ -47,9 +44,7 @@ public:
     }
 };
 
-// ============================================================
-//  CLASS Customer
-// ============================================================
+
 class Customer : public Person
 {
 public:
@@ -72,9 +67,7 @@ public:
     }
 };
 
-// ============================================================
-//  CLASS Account (abstrak)
-// ============================================================
+
 class Account
 {
 protected:
@@ -129,9 +122,7 @@ public:
     }
 };
 
-// ============================================================
-//  CLASS SavingsAccount
-// ============================================================
+
 class SavingsAccount : public Account
 {
 public:
@@ -148,9 +139,7 @@ public:
     }
 };
 
-// ============================================================
-//  CLASS PremiumAccount
-// ============================================================
+
 class PremiumAccount : public Account
 {
 public:
@@ -168,16 +157,17 @@ public:
     }
 };
 
-// ============================================================
-//  CLASS FileManager
-// ============================================================
+
 class FileManager
 {
 public:
 
-    static void saveCustomer(Customer *cust, Account *acc)
+    static bool saveCustomer(Customer *cust, Account *acc)
     {
         ofstream file("laporanAcc.txt");
+
+        if(!file.is_open())
+            return false;
 
         file << "Nama          : " << cust->getNama() << endl;
         file << "NIM           : " << cust->getNIM()  << endl;
@@ -186,14 +176,18 @@ public:
              << acc->getSaldo() << endl;
 
         file.close();
+        return true;
     }
 
-    static void saveTransaction(
+    static bool saveTransaction(
         double setor,
         double tarik,
         const vector<Transaksi>& riwayat)
     {
         ofstream file("laporanTeller.txt");
+
+        if(!file.is_open())
+            return false;
 
         file << "Penyetoran : Rp "
              << fixed << setprecision(0)
@@ -212,12 +206,11 @@ public:
         }
 
         file.close();
+        return true;
     }
 };
 
-// ============================================================
-//  CLASS Bank
-// ============================================================
+
 class Bank
 {
 private:
@@ -230,7 +223,7 @@ private:
 
     vector<Transaksi> riwayat;
 
-    // Helper: pastikan user sudah terdaftar
+
     bool cekAktif()
     {
         if(account == nullptr || customer == nullptr)
@@ -251,7 +244,6 @@ public:
 
     void inputUser()
     {
-        // Bersihkan sesi lama
         if(customer) { delete customer; customer = nullptr; }
         if(account)  { delete account;  account  = nullptr; }
         riwayat.clear();
@@ -260,8 +252,9 @@ public:
 
         string nama, nim;
 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
         cout << "\n  Nama : ";
-        cin.ignore();
         getline(cin, nama);
 
         cout << "  NIM  : ";
@@ -274,8 +267,16 @@ public:
         cout << "\n  Jenis Rekening\n";
         cout << "  1. Reguler\n";
         cout << "  2. Premium\n";
-        cout << "  Pilih : ";
-        cin >> pilihan;
+
+        do
+        {
+            cout << "  Pilih (1/2) : ";
+            cin >> pilihan;
+
+            if(pilihan != 1 && pilihan != 2)
+                cout << "  [!] Pilihan tidak valid. Masukkan 1 atau 2.\n";
+
+        } while(pilihan != 1 && pilihan != 2);
 
         if(pilihan == 1)
             account = new SavingsAccount(0);
@@ -345,7 +346,7 @@ public:
              << jumlah << "!\n";
     }
 
-    // Fitur baru: Transfer (simulasi transfer ke nomor rekening lain)
+
     void transfer()
     {
         if(!cekAktif()) return;
@@ -353,9 +354,16 @@ public:
         string noRek;
         double jumlah;
 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
         cout << "\n  No. Rekening Tujuan : ";
-        cin.ignore();
         getline(cin, noRek);
+
+        if(noRek.empty())
+        {
+            cout << "  [!] Nomor rekening tidak boleh kosong!\n";
+            return;
+        }
 
         cout << "  Jumlah transfer    : Rp ";
         cin >> jumlah;
@@ -381,7 +389,7 @@ public:
              << jumlah << " ke " << noRek << " berhasil!\n";
     }
 
-    // Fitur baru: Riwayat transaksi
+
     void riwayatTransaksi()
     {
         if(!cekAktif()) return;
@@ -424,8 +432,14 @@ public:
     {
         if(!cekAktif()) return;
 
-        FileManager::saveCustomer(customer, account);
-        FileManager::saveTransaction(totalSetor, totalTarik, riwayat);
+        bool ok1 = FileManager::saveCustomer(customer, account);
+        bool ok2 = FileManager::saveTransaction(totalSetor, totalTarik, riwayat);
+
+        if(!ok1 || !ok2)
+        {
+            cout << "\n  [!] Gagal menyimpan laporan. Periksa izin folder.\n";
+            return;
+        }
 
         cout << "\n  [OK] Laporan berhasil disimpan ke file!\n";
         cout << "       - laporanAcc.txt\n";
@@ -439,9 +453,7 @@ public:
     }
 };
 
-// ============================================================
-//  MAIN
-// ============================================================
+
 int main()
 {
     Bank bank;
