@@ -8,6 +8,8 @@
 
 using namespace std;
 
+enum class JenisTransaksi { SETOR, TARIK, TRANSFER };
+
 template<typename T>
 void showData(T data)
 {
