@@ -136,7 +136,7 @@ void animasiMasukkanKartu()
 
     SLEEP_MS(400);
 
-    // Animasi loading bar
+   
     cout << "\n  Memuat sistem  [";
     for(int i = 0; i < 20; i++)
     {
@@ -149,7 +149,7 @@ void animasiMasukkanKartu()
 
     clearScreen();
 
-    // Splash screen sesudah loading
+
     cout << "\n\n";
     cout << "  ╔══════════════════════════════════════════════╗\n";
     cout << "  ║         SELAMAT DATANG DI                    ║\n";
@@ -410,7 +410,6 @@ public:
         return "REGULAR";
     }
 
-    // Dipanggil sekali di awal (setelah animasi kartu)
     void inputUser()
     {
         if(customer) { delete customer; customer = nullptr; }
