@@ -1,12 +1,5 @@
-  ╔══════════════════════════════════════════════╗
-  ║         SELAMAT DATANG DI                    ║
-  ║         BANK USU DIGITAL SYSTEM              ║
-  ║                                              ║
-  ║         Silakan lengkapi data Anda.          ║
-  ║              DATA DIRI                       ║
-  ║                                              ║
-  ╚══════════════════════════════════════════════╝- [ ] Lihat isi main.cpp (sudah)
-- [ ] Buat helper pembersih input stream sebelum getline
-- [ ] Update Bank::inputUser() agar input Nama/NIM langsung bisa diketik tanpa perlu ENTER
-- [ ] Compile ulang & uji program
+- [ ] Fix input "Nama/NIM" agar tidak perlu ENTER tambahan (buffer dibersihkan sebelum getline)
+- [ ] Pastikan PIN diminta setelah user membuka menu, bukan sebelum
+- [ ] Pastikan alur menu berjalan seperti sistem bank OOP (validasi PIN sebelum akses menu)
+- [ ] Cek kompilasi dan tidak ada error string/quoting
 
