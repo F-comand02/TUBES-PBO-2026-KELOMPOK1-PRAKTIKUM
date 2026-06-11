@@ -266,9 +266,9 @@ class SistemATM {
         while (true) {
             clearScreen();
             cout << BG_BLUE << BOLD << WHITE;
-            cout << "\n+====================================================+\n";
+            cout << "\n +====================================================+\n";
             cout << "  |        BANK ASLI GANTENG - NASABAH                |\n";
-            cout << "  +====================================================+\n" << RESET;
+            cout << "  +===================================================+\n" << RESET;
             cout << "\n  " << CYAN << "Halo, " << BOLD << aktif->getNama() << RESET << "\n";
             cout << "  Saldo : " << GREEN << BOLD
                  << rupiah(aktif->getRekening()->getSaldo()) << RESET << "\n\n";

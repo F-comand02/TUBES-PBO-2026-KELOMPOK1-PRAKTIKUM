@@ -40,7 +40,7 @@ public:
 
    
     friend ostream& operator<<(ostream& os, const KartuATM& k) {
-        os << CYAN  << "  +------------------------------------+\n";
+        os << CYAN  << "+------------------------------------+\n";
         os << "  |  " << YELLOW << BOLD << "BANK ASLI GANTENG" << RESET << CYAN << "                 |\n";
         os << "  |  " << WHITE  << k.noKartu.substr(0, 4) << " **** **** "
            << k.noKartu.substr(12, 4) << "         " << CYAN << "|\n";
